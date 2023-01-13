@@ -17,6 +17,7 @@ func main() {
 	list := flag.Bool("list", false, "List all tasks")
 	complete := flag.Int("complete", 0, "Item to be completed")
 	del := flag.Int("del", 0, "Item to be deleted")
+	verbose := flag.Bool("verbose", false, "Enable verbose output, showing information like date/time")
 	flag.Parse()
 
 	var todoFileName = ".todo.json"
@@ -32,6 +33,10 @@ func main() {
 
 	switch {
 	case *list:
+		if *verbose {
+			fmt.Print(l.StringVerbose())
+			os.Exit(0)
+		}
 		fmt.Print(l)
 	case *complete > 0:
 		if err := l.Complete(*complete); err != nil {
