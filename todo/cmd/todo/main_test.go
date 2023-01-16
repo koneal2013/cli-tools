@@ -52,11 +52,14 @@ func TestTodoCLI(t *testing.T) {
 		require.NoError(t, err)
 	})
 	task2 := "test task number 2"
-	t.Run("AddNewTaskFromSTDIN", func(t *testing.T) {
+	task3 := "test task number 3"
+	t.Run("AddNewTasksFromSTDIN", func(t *testing.T) {
 		cmd := exec.Command(cmdPath, "-add")
 		cmdStdIn, err := cmd.StdinPipe()
 		require.NoError(t, err)
 		io.WriteString(cmdStdIn, task2)
+		io.WriteString(cmdStdIn, task3)
+		io.WriteString(cmdStdIn, "")
 		cmdStdIn.Close()
 		err = cmd.Run()
 		require.NoError(t, err)

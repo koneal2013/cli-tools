@@ -32,12 +32,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	withoutCompleted := &todo.List{}
+	var withoutCompleted *todo.List
 	switch {
 	case *list:
 		if *removeCompleted {
 			for _, t := range *l {
 				if !t.Done {
+					if withoutCompleted == nil {
+						withoutCompleted = &todo.List{}
+					}
 					*withoutCompleted = append(*withoutCompleted, t)
 				}
 			}
@@ -65,12 +68,16 @@ func main() {
 			os.Exit(1)
 		}
 	case *add:
-		t, err := getTask(os.Stdin, flag.Args()...)
+		tasks, err := getTasks(os.Stdin, flag.Args()...)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
+		} else if len(tasks) == 0 {
+			break
 		}
-		l.Add(t)
+		for _, task := range tasks {
+			l.Add(task)
+		}
 		if err := l.Save(todoFileName); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
@@ -90,18 +97,21 @@ func main() {
 	}
 }
 
-func getTask(r io.Reader, args ...string) (string, error) {
+func getTasks(r io.Reader, args ...string) ([]string, error) {
 	if len(args) > 0 {
-		return strings.Join(args, " "), nil
+		return []string{strings.Join(args, " ")}, nil
 	}
-
-	s := bufio.NewScanner(r)
-	s.Scan()
-	if err := s.Err(); err != nil {
-		return "", err
+	var tasks []string
+	for {
+		s := bufio.NewScanner(r)
+		s.Scan()
+		if err := s.Err(); err != nil {
+			return nil, err
+		}
+		if len(s.Text()) == 0 {
+			return tasks, nil
+		}
+		tasks = append(tasks, s.Text())
 	}
-	if len(s.Text()) == 0 {
-		return "", errors.New("task cannot be blank")
-	}
-	return s.Text(), nil
+	return tasks, nil
 }
